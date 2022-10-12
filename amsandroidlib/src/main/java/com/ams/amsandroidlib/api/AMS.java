@@ -1,12 +1,12 @@
-package com.ams.amsandroidlib;
+package com.ams.amsandroidlib.api;
 
 import java.io.IOException;
 
 public interface AMS {
-    void initialise();
-    void waitForApp();
-    void clickByResourceID();
-    void clickText(String text);
+    void launchApp(String pkgName);
+    void clickByResourceID(String identifier);
+    void clickByResourceID(String pkgName, String identifier);
+    void clickByText(String textIdentifier);
     void verifyScreen(String tagName) throws IOException;
     void pageName(String text);
     void testName(String text);

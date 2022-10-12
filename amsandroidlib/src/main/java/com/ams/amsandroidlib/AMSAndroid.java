@@ -11,12 +11,16 @@ import android.content.pm.ResolveInfo;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.uiautomator.By;
+import androidx.test.uiautomator.BySelector;
 import androidx.test.uiautomator.UiDevice;
 import androidx.test.uiautomator.UiObject;
+import androidx.test.uiautomator.UiObject2;
+import androidx.test.uiautomator.UiObject2Condition;
 import androidx.test.uiautomator.UiObjectNotFoundException;
 import androidx.test.uiautomator.UiSelector;
 import androidx.test.uiautomator.Until;
 
+import com.ams.amsandroidlib.api.AMS;
 import com.ams.amsandroidlib.helper.OkHTTPHelper;
 import com.ams.amsandroidlib.helper.Reporter;
 import com.ams.amsandroidlib.helper.Suite;
@@ -31,11 +35,14 @@ import java.util.ArrayList;
 
 import okhttp3.Response;
 
-public class AMSImpl implements AMS {
-    private static final String BASIC_SAMPLE_PACKAGE
-            = "com.example.toasterexample";
+public class AMSAndroid implements AMS {
+    private String packageName;
 
     private static final int LAUNCH_TIMEOUT = 5000;
+
+    private static final int DEFAULT_TIMEOUT = 30000;
+
+    private String apiKey;
 
     private static final String STRING_TO_BE_TYPED = "UiAutomator";
 
@@ -46,13 +53,14 @@ public class AMSImpl implements AMS {
     private Suite suite = new Suite();
     private ArrayList <String> testName = new ArrayList<>();
 
-    public void initialise(){
-        mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
+    public AMSAndroid(String apiKey) {
+        this.apiKey = apiKey;
+        // Verify apiKey
+        mDevice = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
         // Start from the home screen
         mDevice.pressHome();
-
-        // Wait for launcher
+        // Wait for device launcher
         final String launcherPackage = getLauncherPackageName();
         assertThat(launcherPackage, notNullValue());
         mDevice.wait(Until.hasObject(By.pkg(launcherPackage).depth(0)), LAUNCH_TIMEOUT);
@@ -60,32 +68,69 @@ public class AMSImpl implements AMS {
         suites = new ArrayList<>();
         suite = new Suite();
         testName = new ArrayList<>();
-
     }
 
-    public void waitForApp(){
+    public void launchApp(String packageName){
+        this.packageName = packageName ;
         // Launch the blueprint app
         Context context = getApplicationContext();
         final Intent intent = context.getPackageManager()
-                .getLaunchIntentForPackage(BASIC_SAMPLE_PACKAGE);
+                .getLaunchIntentForPackage(this.packageName);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);    // Clear out any previous instances
         context.startActivity(intent);
 
         // Wait for the app to appear
-        mDevice.wait(Until.hasObject(By.pkg(BASIC_SAMPLE_PACKAGE).depth(0)), LAUNCH_TIMEOUT);
+        mDevice.wait(Until.hasObject(By.pkg(this.packageName).depth(0)), LAUNCH_TIMEOUT);
     }
 
-    public void clickByResourceID(){
-        UiObject toggleButton1 = mDevice.findObject(new UiSelector().resourceId("com.example.toasterexample:id/simpleToggleButton1"));
-        try {
-            toggleButton1.click();
-        } catch (UiObjectNotFoundException e) {
-            e.printStackTrace();
+    public void clickByResourceID(String identifier){
+        //new UiSelector().resourceId(this.packageName +":id/"+identifier)
+        UiObject2 objectByResourceId = mDevice.wait(Until
+                .findObject(By.res(this.packageName,identifier)), DEFAULT_TIMEOUT);
+
+        if (objectByResourceId.isClickable()){
+            objectByResourceId.click();
+        }
+        else {
+            System.out.println("Element not clickable");
         }
     }
 
-    @Override
-    public void clickText(String text) {
+    public void clickByResourceID(String packageName, String identifier){
+        UiObject2 objectByResourceId = mDevice.wait(Until
+                .findObject(By.res(packageName,identifier)), DEFAULT_TIMEOUT);
+
+        if (objectByResourceId.isClickable()){
+            objectByResourceId.click();
+        }
+        else {
+            System.out.println("Element not clickable");
+        }
+    }
+
+    public void clickByText(String textIdentifier){
+        UiObject2 objectByResourceId = mDevice.wait(Until
+                .findObject(By.textStartsWith(textIdentifier)), DEFAULT_TIMEOUT);
+
+        if (objectByResourceId.isClickable()){
+            objectByResourceId.click();
+        }
+        else {
+            System.out.println("Element not clickable");
+        }
+
+    }
+
+    public void verifyTextIsDisplayed(String textIdentifier){
+        UiObject2 objectByResourceId = mDevice.wait(Until
+                .findObject(By.textStartsWith(textIdentifier)), DEFAULT_TIMEOUT);
+
+        if (objectByResourceId.isClickable()){
+            objectByResourceId.click();
+        }
+        else {
+            System.out.println("Element not clickable");
+        }
 
     }
 
@@ -144,15 +189,16 @@ public class AMSImpl implements AMS {
 
     @Override
     public void verifyValueAtID(String identifier, String value) {
-        UiObject toggleButton1 = mDevice.findObject(new UiSelector().resourceId("com.example.toasterexample:id/"+identifier));
-        String valueT = "";
+        UiObject toggleButton1 = mDevice.findObject(new UiSelector().resourceId(
+                this.packageName +":id/"+identifier));
+        String valueOriginal = "";
         try {
-            valueT = toggleButton1.getText();
+            valueOriginal = toggleButton1.getText();
         } catch (UiObjectNotFoundException e) {
             e.printStackTrace();
         }
         try {
-            Assert.assertEquals(value,valueT);
+            Assert.assertEquals(value,valueOriginal);
             suite.setTestResult("Pass");
         } catch (AssertionError e) {
             suite.setTestResult("Fail");
