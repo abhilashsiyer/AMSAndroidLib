@@ -1,4 +1,4 @@
-package com.ams.amsandroidlib.helper;
+package com.ams.amsandroidlib.helpers.reporter;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package com.ams.amsandroidlib.helper;
+package com.ams.amsandroidlib.helpers.imagevalidation;
 
 import java.io.File;
 import java.io.IOException;

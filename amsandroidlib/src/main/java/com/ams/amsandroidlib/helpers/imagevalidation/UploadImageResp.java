@@ -1,4 +1,4 @@
-package com.ams.amsandroidlib.helper;
+package com.ams.amsandroidlib.helpers.imagevalidation;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -8,8 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ImageValidationResp {
+public class UploadImageResp {
+    private String message;
     private String task_id;
-    private TaskResult taskResult;
-    private String task_status;
 }
